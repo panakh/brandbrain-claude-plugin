@@ -1,0 +1,14 @@
+All Rights Reserved - BrandBrain Ltd.
+
+Copyright (c) 2026 BrandBrain Ltd. All rights reserved.
+
+This skill and its accompanying files are proprietary to BrandBrain Ltd. No
+license, express or implied, is granted for use, copying, modification, or
+distribution of these files outside of the BrandBrain product and its official
+distribution channels.
+
+NOTE TO MAINTAINERS: the BrandBrain monorepo does not ship a top-level LICENSE
+file today. When BrandBrain adopts a formal license (e.g. MIT, Apache-2.0, or a
+bespoke commercial terms document), replace this file with the real license
+text and sync it to the `brandbrain-claude-plugin` marketplace repo via the
+`sync-brandbrain-plugin.sh` script.
