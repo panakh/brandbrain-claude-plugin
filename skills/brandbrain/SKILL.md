@@ -46,6 +46,21 @@ BrandBrain separates provenance (`Source`) from the post body (`Content`). Every
 
 Exact flag names come from `bb post -h` and `bb source create -h`; treat the above as a mnemonic, not a contract. When `bb` returns non-zero, read stderr and follow the exit-code guidance from the verb's help.
 
+## URLs
+
+After a successful `bb` command, the API may return a `urls` object alongside the JSON payload (e.g. `urls.review`, `urls.edit`, `urls.live`, `urls.published_view`, `urls.view`). `bb` prints these as `<Key>: <url>` lines on stdout. Quote them VERBATIM when telling the user where to look — never construct a BrandBrain URL from a contentId or sourceId yourself. URL formats live in the API; treating them as memory leads to invented routes (e.g. `/review/<id>` does not exist).
+
+If a particular `urls.<key>` is missing from the response, that surface either has no canonical URL yet or the older API version did not return it — say so honestly rather than guessing.
+
+Static app pages (no resource id needed) — safe to reference directly:
+
+- <https://www.brandbrain.app/content> — content drafts/review/published list
+- <https://www.brandbrain.app/discovery/sources> — sources list
+- <https://www.brandbrain.app/schedule> — scheduled posts
+- <https://www.brandbrain.app/billing> — billing and wallet
+- <https://www.brandbrain.app/settings/connections> — social account connections
+- <https://www.brandbrain.app/settings/api-tokens> — agent API tokens
+
 ## When not to use
 
 Direct the user to <https://www.brandbrain.app> for billing, connection management, approving content already in review, or editing scheduled posts. Those are web-UI tasks, not `bb` tasks.

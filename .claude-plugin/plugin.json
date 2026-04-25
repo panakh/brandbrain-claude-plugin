@@ -1,7 +1,7 @@
 {
   "name": "brandbrain",
   "description": "Post, draft, schedule, and queue social content (LinkedIn, Instagram, X, Threads, and more) from Claude Code through the `bb` CLI. The skill is self-describing: Claude runs `bb -h` and `bb <verb> -h` at runtime to discover available platforms, formats, and flags. Includes an inline `bb` CLI bootstrap protocol so a fresh machine can go from `claude plugin install` to `bb post` without a separate installer.",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "author": {
     "name": "BrandBrain",
     "email": "support@brandbrain.app"
