@@ -1,0 +1,27 @@
+{
+  "name": "brandbrain-claude-plugin",
+  "owner": {
+    "name": "BrandBrain",
+    "email": "support@brandbrain.app"
+  },
+  "metadata": {
+    "description": "BrandBrain Claude Code plugin marketplace. Hosts the brandbrain plugin: a self-describing skill that lets Claude Code post, draft, schedule, and queue social content (LinkedIn, Instagram, X, Threads, and more) via the bb CLI."
+  },
+  "plugins": [
+    {
+      "name": "brandbrain",
+      "source": "./",
+      "description": "Post, draft, schedule, and queue social content (LinkedIn, Instagram, X, Threads, and more) from Claude Code through the bb CLI. The skill is self-describing: Claude runs bb -h and bb <verb> -h at runtime to discover available platforms, formats, and flags. Includes an inline bb CLI bootstrap protocol so a fresh machine can go from claude plugin install to bb post without a separate installer.",
+      "author": {
+        "name": "BrandBrain",
+        "email": "support@brandbrain.app"
+      },
+      "homepage": "https://brandbrain.app",
+      "repository": "https://github.com/panakh/brandbrain-claude-plugin",
+      "license": "MIT",
+      "keywords": ["social-media", "content", "linkedin", "instagram", "x", "threads", "bb-cli", "brandbrain"],
+      "category": "social-media",
+      "tags": ["social", "content", "automation"]
+    }
+  ]
+}
