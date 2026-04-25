@@ -22,6 +22,18 @@ If `bb --version` fails with "command not found", install it inline. Run each st
 
 Runs once per machine. Subsequent sessions skip straight to the Discovery Protocol once `bb --version` succeeds.
 
+## Installing BrandBrain Desktop
+
+If the user asks to install BrandBrain Desktop (the macOS app), run:
+
+```bash
+curl -fsSL https://brandbrain.app/install.sh | bash
+```
+
+That single command installs `BrandBrain.app` to `/Applications/`, clears macOS quarantine so Gatekeeper allows first launch, and symlinks the app-bundled `bb` CLI into `~/.local/bin/bb`. Idempotent — safe to re-run as the update path. Launch with `open -a BrandBrain` once it finishes.
+
+Linux and Windows are not supported by this installer in the current release; on those hosts, point the user at <https://brandbrain.app> for manual download options.
+
 ## Auth
 
 Before any `bb` verb that talks to BrandBrain, preflight with `bb auth status`. If it reports `Source: none` or exits with code 2, ask the user to run `bb auth login` (opens a browser - only the user can complete it) and retry. If a later command returns a 401 / "not authenticated" / "token expired" error, re-run `bb auth status`; if the source shifted to `none` or the token expired, ask the user to re-login and retry the failed command after they confirm.
