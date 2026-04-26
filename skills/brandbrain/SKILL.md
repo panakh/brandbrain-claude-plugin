@@ -1,6 +1,6 @@
 ---
 name: brandbrain
-description: Post content to LinkedIn, Instagram, X, Threads, and other platforms using the `bb` CLI. Claude drafts and decides; `bb` executes. Use whenever the user wants to publish, draft, schedule, or queue a social post, thread, or carousel.
+description: Post content to LinkedIn, Instagram, X, Threads, and other platforms, and read or edit the BrandBrain product catalog and per-product market research (brand product memory) — all via the `bb` CLI. Claude drafts and decides; `bb` executes. Use whenever the user wants to publish/draft/schedule/queue a social post, thread, or carousel; list, get, create, update, or delete products; save, read, or clear market research on a product; or upload a product image.
 ---
 
 # brandbrain
@@ -9,13 +9,14 @@ Thin wrapper around the `bb` CLI, BrandBrain's authenticated agent surface. You 
 
 ## Pre-flight (every `bb` invocation)
 
-Before any verb that creates or mutates content (`bb post`, `bb source create`, `bb content *`, `bb media *`):
+Before any verb that creates or mutates content (`bb content create`, `bb content edit`, `bb source create`, `bb media *`, `bb products create|update|delete|image-upload`, `bb products research save|clear`):
 
-1. Read the CLI as the spec. Run `bb -h` cold each session, and `bb <verb> -h` for any verb you have not used yet this session. Do not guess flags.
+1. Read the CLI as the spec. Run `bb -h` cold each session, and `bb <verb> -h` for any verb you have not used yet this session. Do not guess flags. The brand-context preflight checklist is also baked into `bb content create -h` itself, so reading that help text refreshes the rules.
 2. Read the user's brand context BEFORE drafting:
    - `bb prefs list` reads active user preferences (brand-profile memory: voice, tone, banned phrases, recurring instructions).
    - `bb defaults get` reads workspace content defaults (brand identity, colour palette, default tone, namespace-keyed fields).
    - `bb guidelines list` shows available BrandBrain cloud guidelines for the signed-in workspace; then `bb guidelines read <name>` fetches the full body of any guideline relevant to the task.
+   - `bb products list` lists the user's BrandBrain products; `bb products get <id>` returns full product detail (description, category, website, image) and any saved `marketResearch`. Read product context whenever a post promotes or references a specific product, and read `bb products research read <id>` if the post should lean on prior market research.
 3. Apply user writing rules. NO em-dashes. NO AI-generated buzzwords (game-changer, leverage, streamline, delve, dive deep, in today's fast-paced world, unlock, harness, navigate the complexities, and the like). Keep the brand voice consistent across posts.
 4. When a `bb` call returns, quote any printed `<Key>: <url>` line verbatim. Never build a BrandBrain URL from a contentId or sourceId yourself; that path leads to invented routes such as `/review/<id>`.
 
@@ -61,16 +62,52 @@ The CLI IS the tool catalog. Read help text every session:
 
 ## Usage
 
-BrandBrain separates provenance (`Source`) from the post body (`Content`). Every `bb post` call requires a Source reference AND a content body reference.
+BrandBrain separates provenance (`Source`) from the post body (`Content`). Every `bb content create` call requires a Source reference AND a content body reference.
 
-- Two-verb flow (existing Source): `bb source create --type <t> --url <url>` -> `bb post --platform <slug> --format <format> --source-id <id> --content <ref>`
-- One-shot URL shortcut (inline Source creation): `bb post --platform <slug> --format <format> --new-source-url <url> --new-source-type <youtube|tiktok|reel|link> --content <ref>`
+`bb content create` is the unified content-creation verb (replaces the legacy `bb post`, which was hard-removed in 0.3 - never released). It DEFAULTS to a draft (lands in the review queue). Use the dispatch flags for one-shot create-and-do-more behaviour.
+
+- Two-verb flow (existing Source): `bb source create --type <t> --url <url>` -> `bb content create --platform <slug> --format <format> --source-id <id> --content <ref>`
+- One-shot URL shortcut (inline Source creation): `bb content create --platform <slug> --format <format> --new-source-url <url> --new-source-type <youtube|tiktok|reel|link> --content <ref>`
 - `--source-id` and `--new-source-url` are mutually exclusive. For research/news/insight/text Sources, always use `bb source create` first.
-- Schedule: add `--schedule-at <iso-timestamp>`
-- Queue for review (skip status PUT): add `--review`
-- Pick a specific account: add `--account <id>`
+- Default (no `--publish`, no `--schedule-at`): draft only. Lands in BrandBrain's review queue. Approve later via `bb content approve --id=<id>` or the BrandBrain web UI.
+- One-shot publish: add `--publish` (chains create + approve + publish). Mutually exclusive with `--schedule-at`. Only works for formats whose dispatch is `publish_on_create`.
+- Schedule: add `--schedule-at <iso-timestamp>` (chains create + approve with `scheduledAt`). Mutually exclusive with `--publish`.
+- Pick a specific account: add `--account <id>`.
+- Carousel image generation: add `--generate-images`. Hard-rejects with exit code 8 if any slide is missing `imagePrompt`. Re-read brand context (prefs + defaults + format guideline), resupply imagePrompts, retry.
 
-Exact flag names come from `bb post -h` and `bb source create -h`; treat the above as a mnemonic, not a contract. When `bb` returns non-zero, read stderr and follow the exit-code guidance from the verb's help.
+State-transition controllers (act on EXISTING Content records by id):
+
+- `bb content approve --id=<id>` move pending_review -> approved.
+- `bb content reject --id=<id> [--reason=<s>]` move to rejected with optional reason.
+- `bb content schedule --id=<id> --at=<iso>` set scheduledAt on an approved record.
+- `bb content publish --id=<id>` push an approved record to the platform.
+
+CRUD: `bb content get|list|edit|delete`.
+
+Exact flag names come from `bb content create -h`, `bb content approve -h`, etc., and `bb source create -h`; treat the above as a mnemonic, not a contract. When `bb` returns non-zero, read stderr and follow the exit-code guidance from the verb's help.
+
+## Products and market research
+
+`bb products` manages the user's BrandBrain product catalog. Each product has metadata (name, description, category, website, image) and an optional `marketResearch` markdown blob — agent-curated research saved against the product. Read `bb products -h` and `bb products <sub> -h` for exact flags; the list below is a mnemonic, not a contract.
+
+- `bb products list` — list all of the user's products
+- `bb products get <id>` — full product detail including any saved market research
+- `bb products create --name "..." [--description "..."] [--category "..."] [--website-url "..."] [--image-url "..."]` — create a new product
+- `bb products update <id> [--name "..."] [--description "..."] [--category "..."] [--website-url "..."] [--image-url "..."]` — patch any subset of fields
+- `bb products delete <id>` — delete a product
+- `bb products image-upload <id> --file <path>` — upload a product image (multipart)
+- `bb products research save <id> --from-file <path> | --text "..."` — save (overwrite) the product's market research markdown
+- `bb products research read <id>` — read the saved market research
+- `bb products research clear <id>` — clear the saved market research
+
+There is no `bb products sync` verb. To "sync" a product from its website, the agent reads the site locally (WebFetch or browser), summarises into a fresh description, then calls `bb products update <id> --description "..."`. Same pattern if the agent needs to refresh the image — fetch locally, then `bb products image-upload`.
+
+Examples:
+- Edit the user's BrandBrain product description: `bb products update prod_abc --description "..."`
+- Save market research to a product: `bb products research save prod_abc --from-file /tmp/research.md`
+- Read existing market research before drafting a post that references the product: `bb products research read prod_abc`
+
+When the response includes a `urls` object, quote `<Key>: <url>` lines verbatim - same rule as `bb content create`. Do not construct BrandBrain product URLs from a product id yourself.
 
 ## URLs
 
