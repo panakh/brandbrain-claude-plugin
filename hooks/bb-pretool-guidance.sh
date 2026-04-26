@@ -24,8 +24,8 @@
 #     the user's `bb` call is never blocked by a broken hook.
 #
 # Word-boundary match notes:
-#   `bb`, `bb post`, `bb -h`, `/usr/local/bin/bb post`, and
-#   `~/.local/bin/bb post --review` MUST match. `cbb`, `dbb foo`, `echo bb`
+#   `bb`, `bb content create`, `bb -h`, `/usr/local/bin/bb content create`, and
+#   `~/.local/bin/bb content approve --id=...` MUST match. `cbb`, `dbb foo`, `echo bb`
 #   (where `bb` is an argument, not the verb) MUST NOT match.
 
 set -euo pipefail
@@ -67,7 +67,7 @@ fi
 
 # Pre-flight prose. NO em-dashes; em-dash ban is the user's #1 banned token
 # and the very rule we are documenting here.
-preflight=$'BrandBrain skill rules, auto-injected by plugin hook on every `bb` invocation.\n\nPRE-FLIGHT for content/source-creating verbs (`bb post`, `bb source create`, `bb content *`, `bb media *`):\n1. Run `bb -h` cold each session, and `bb <verb> -h` if you have not yet read it this session. The CLI is the spec; do not guess flags.\n2. Read user brand context BEFORE drafting:\n   - `bb prefs list`        active user preferences (brand-profile memory: voice, tone, banned phrases, recurring instructions).\n   - `bb defaults get`      workspace content defaults (brand identity, colour palette, default tone, namespace-keyed fields).\n   - `bb guidelines list`   available BrandBrain cloud guidelines; then `bb guidelines read <name>` for the full body of any guideline relevant to the task.\n3. Apply user writing rules: NO em-dashes. NO AI-generated buzzwords (game-changer, leverage, streamline, delve, dive deep, in today\'s fast-paced world, unlock, harness, navigate the complexities, etc.). Brand voice must stay consistent across posts.\n4. After a `bb` call returns, quote any printed `<Key>: <url>` line VERBATIM. Never construct BrandBrain URLs from a contentId or sourceId; that path leads to invented routes such as `/review/<id>`.\n\nFull SKILL.md follows.\n---\n'
+preflight=$'BrandBrain skill rules, auto-injected by plugin hook on every `bb` invocation.\n\nPRE-FLIGHT for content/source-creating verbs (`bb content create`, `bb content edit`, `bb source create`, `bb media *`):\n1. Run `bb -h` cold each session, and `bb <verb> -h` if you have not yet read it this session. The CLI is the spec; do not guess flags. The brand-context preflight checklist below is also baked into `bb content create -h` itself.\n2. Read user brand context BEFORE drafting:\n   - `bb prefs list`        active user preferences (brand-profile memory: voice, tone, banned phrases, recurring instructions).\n   - `bb defaults get`      workspace content defaults (brand identity, colour palette, default tone, namespace-keyed fields).\n   - `bb guidelines list`   available BrandBrain cloud guidelines; then `bb guidelines read <name>` for the full body of any guideline relevant to the task.\n3. Apply user writing rules: NO em-dashes. NO AI-generated buzzwords (game-changer, leverage, streamline, delve, dive deep, in today\'s fast-paced world, unlock, harness, navigate the complexities, etc.). Brand voice must stay consistent across posts.\n4. After a `bb` call returns, quote any printed `<Key>: <url>` line VERBATIM. Never construct BrandBrain URLs from a contentId or sourceId; that path leads to invented routes such as `/review/<id>`.\n5. Lifecycle controllers act on existing Content records by id: `bb content approve --id=<id>` / `bb content reject --id=<id>` / `bb content schedule --id=<id> --at=<iso>` / `bb content publish --id=<id>`. The legacy `bb post` verb was removed in 0.3, never use it.\n\nFull SKILL.md follows.\n---\n'
 
 skill_body=""
 if [[ -f "$SKILL_PATH" ]]; then
