@@ -1,0 +1,16 @@
+{
+  "description": "Inject brandbrain SKILL.md plus a content/source pre-flight checklist on every `bb` Bash invocation, so the local agent always reads the BrandBrain guidelines and asks for the user's brand context before creating content.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/bb-pretool-guidance.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

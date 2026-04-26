@@ -7,6 +7,17 @@ description: Post content to LinkedIn, Instagram, X, Threads, and other platform
 
 Thin wrapper around the `bb` CLI, BrandBrain's authenticated agent surface. You are the brain; `bb` is the hands. Read help text at runtime; do not rely on memory.
 
+## Pre-flight (every `bb` invocation)
+
+Before any verb that creates or mutates content (`bb post`, `bb source create`, `bb content *`, `bb publish`):
+
+1. Read the CLI as the spec. Run `bb -h` cold each session, and `bb <verb> -h` for any verb you have not used yet this session. Do not guess flags.
+2. Check the user's brand context BEFORE drafting. Run `bb -h` and look for a discovery verb such as `bb brand`, `bb me`, or `bb config`. If one exists, run it and read the response so you know the user's brand voice, colour palette, target audience, and banned phrases before you draft. If no such verb exists yet, STOP and ask the user about brand voice, colours, banned phrases, and audience; also flag that this discovery verb is missing so it can be added.
+3. Apply user writing rules. NO em-dashes. NO AI-generated buzzwords (game-changer, leverage, streamline, delve, dive deep, in today's fast-paced world, unlock, harness, navigate the complexities, and the like). Keep the brand voice consistent across posts.
+4. When a `bb` call returns, quote any printed `<Key>: <url>` line verbatim. Never build a BrandBrain URL from a contentId or sourceId yourself; that path leads to invented routes such as `/review/<id>`.
+
+A PreToolUse plugin hook re-injects this skill's body on every `bb` Bash call, so this rule survives even when the skill description did not retrigger a fresh skill load.
+
 ## Bootstrap
 
 If `bb --version` fails with "command not found", install it inline. Run each step yourself - there is no helper script.
