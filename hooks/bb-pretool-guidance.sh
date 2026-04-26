@@ -5,9 +5,12 @@
 # PreToolUse hook for the brandbrain Claude Code plugin.
 # Detects whether a Bash tool call is invoking the `bb` CLI; if so, emits a
 # JSON object on stdout with `hookSpecificOutput.additionalContext` carrying
-# the brandbrain pre-flight rules plus the full SKILL.md body. This guarantees
-# the agent rereads the BrandBrain guidelines on EVERY `bb` call, even when
-# the skill description did not trigger a fresh skill load.
+# the brandbrain pre-flight rules. This guarantees the agent rereads the
+# BrandBrain pre-flight checklist on EVERY `bb` call, even when the skill
+# description did not trigger a fresh skill load. The full SKILL.md body is
+# loaded separately via the plugin's skill description-trigger and is NOT
+# re-injected here (re-inlining it on every `bb` call exceeded the harness
+# tool-result cap and triggered persisted-output truncation banners).
 #
 # Contract (Claude Code hooks spec):
 #   - Reads the tool payload as JSON on stdin.
@@ -16,12 +19,12 @@
 #         "hookSpecificOutput": {
 #           "hookEventName": "PreToolUse",
 #           "permissionDecision": "allow",
-#           "additionalContext": "<pre-flight + SKILL.md>"
+#           "additionalContext": "<pre-flight prose>"
 #         }
 #       }
 #   - On any non-`bb` Bash call, prints nothing and exits 0 (no-op).
-#   - On any internal error (missing jq, missing SKILL.md), still exits 0 so
-#     the user's `bb` call is never blocked by a broken hook.
+#   - On any internal error (missing jq), still exits 0 so the user's `bb`
+#     call is never blocked by a broken hook.
 #
 # Word-boundary match notes:
 #   `bb`, `bb content create`, `bb -h`, `/usr/local/bin/bb content create`, and
@@ -29,9 +32,6 @@
 #   (where `bb` is an argument, not the verb) MUST NOT match.
 
 set -euo pipefail
-
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-}"
-SKILL_PATH="${PLUGIN_ROOT}/skills/brandbrain/SKILL.md"
 
 # Fail-soft: if jq is missing, do nothing rather than break the user's bb call.
 if ! command -v jq >/dev/null 2>&1; then
@@ -67,14 +67,9 @@ fi
 
 # Pre-flight prose. NO em-dashes; em-dash ban is the user's #1 banned token
 # and the very rule we are documenting here.
-preflight=$'BrandBrain skill rules, auto-injected by plugin hook on every `bb` invocation.\n\nPRE-FLIGHT for content/source-creating verbs (`bb content create`, `bb content edit`, `bb source create`, `bb media *`):\n1. Run `bb -h` cold each session, and `bb <verb> -h` if you have not yet read it this session. The CLI is the spec; do not guess flags. The brand-context preflight checklist below is also baked into `bb content create -h` itself.\n2. Read user brand context BEFORE drafting:\n   - `bb prefs list`        active user preferences (brand-profile memory: voice, tone, banned phrases, recurring instructions).\n   - `bb defaults get`      workspace content defaults (brand identity, colour palette, default tone, namespace-keyed fields).\n   - `bb guidelines list`   available BrandBrain cloud guidelines; then `bb guidelines read <name>` for the full body of any guideline relevant to the task.\n3. Apply user writing rules: NO em-dashes. NO AI-generated buzzwords (game-changer, leverage, streamline, delve, dive deep, in today\'s fast-paced world, unlock, harness, navigate the complexities, etc.). Brand voice must stay consistent across posts.\n4. After a `bb` call returns, quote any printed `<Key>: <url>` line VERBATIM. Never construct BrandBrain URLs from a contentId or sourceId; that path leads to invented routes such as `/review/<id>`.\n5. Lifecycle controllers act on existing Content records by id: `bb content approve --id=<id>` / `bb content reject --id=<id>` / `bb content schedule --id=<id> --at=<iso>` / `bb content publish --id=<id>`. The legacy `bb post` verb was removed in 0.3, never use it.\n\nFull SKILL.md follows.\n---\n'
+preflight=$'BrandBrain skill rules, auto-injected by plugin hook on every `bb` invocation.\n\nPRE-FLIGHT for content/source-creating verbs (`bb content create`, `bb content edit`, `bb source create`, `bb media *`):\n1. Run `bb -h` cold each session, and `bb <verb> -h` if you have not yet read it this session. The CLI is the spec; do not guess flags. The brand-context preflight checklist below is also baked into `bb content create -h` itself.\n2. Read user brand context BEFORE drafting:\n   - `bb prefs list`        active user preferences (brand-profile memory: voice, tone, banned phrases, recurring instructions).\n   - `bb defaults get`      workspace content defaults (brand identity, colour palette, default tone, namespace-keyed fields).\n   - `bb guidelines list`   available BrandBrain cloud guidelines; then `bb guidelines read <name>` for the full body of any guideline relevant to the task.\n3. Apply user writing rules: NO em-dashes. NO AI-generated buzzwords (game-changer, leverage, streamline, delve, dive deep, in today\'s fast-paced world, unlock, harness, navigate the complexities, etc.). Brand voice must stay consistent across posts.\n4. After a `bb` call returns, quote any printed `<Key>: <url>` line VERBATIM. Never construct BrandBrain URLs from a contentId or sourceId; that path leads to invented routes such as `/review/<id>`.\n5. Lifecycle controllers act on existing Content records by id: `bb content approve --id=<id>` / `bb content reject --id=<id>` / `bb content schedule --id=<id> --at=<iso>` / `bb content publish --id=<id>`. The legacy `bb post` verb was removed in 0.3, never use it.\n'
 
-skill_body=""
-if [[ -f "$SKILL_PATH" ]]; then
-  skill_body="$(cat "$SKILL_PATH")"
-fi
-
-additional_context="${preflight}${skill_body}"
+additional_context="${preflight}"
 
 # Emit the hook output JSON. jq -n -R --arg builds the string field safely so
 # embedded quotes, newlines, and backslashes are escaped per JSON rules.
