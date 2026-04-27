@@ -69,20 +69,20 @@ BrandBrain separates provenance (`Source`) from the post body (`Content`). Every
 - Two-verb flow (existing Source): `bb source create --type <t> --url <url>` -> `bb content create --platform <slug> --format <format> --source-id <id> --content <ref>`
 - One-shot URL shortcut (inline Source creation): `bb content create --platform <slug> --format <format> --new-source-url <url> --new-source-type <youtube|tiktok|reel|link> --content <ref>`
 - `--source-id` and `--new-source-url` are mutually exclusive. For research/news/insight/text Sources, always use `bb source create` first.
-- Default (no `--publish`, no `--schedule-at`): draft only. Lands in BrandBrain's review queue. Approve later via `bb content approve --id=<id>` or the BrandBrain web UI.
+- Default (no `--publish`, no `--schedule-at`): draft only. Lands in BrandBrain's review queue. Approve later via `bb content approve <id>` or the BrandBrain web UI.
 - One-shot publish: add `--publish` (chains create + approve + publish). Mutually exclusive with `--schedule-at`. Only works for formats whose dispatch is `publish_on_create`.
 - Schedule: add `--schedule-at <iso-timestamp>` (chains create + approve with `scheduledAt`). Mutually exclusive with `--publish`.
 - Pick a specific account: add `--account <id>`.
 - Carousel image generation: add `--generate-images`. Hard-rejects with exit code 8 if any slide is missing `imagePrompt`. Re-read brand context (prefs + defaults + format guideline), resupply imagePrompts, retry.
 
-State-transition controllers (act on EXISTING Content records by id):
+State-transition controllers (act on EXISTING Content records by id; v0.3.17+ takes the id as a positional, matching `gh / kubectl / stripe`. The legacy `--id <id>` flag still parses as a back-compat alias):
 
-- `bb content approve --id=<id>` move pending_review -> approved.
-- `bb content reject --id=<id> [--reason=<s>]` move to rejected with optional reason.
-- `bb content schedule --id=<id> --at=<iso>` set scheduledAt on an approved record.
-- `bb content publish --id=<id>` push an approved record to the platform.
+- `bb content approve <id>` move pending_review -> approved.
+- `bb content reject <id> [--reason=<s>]` move to rejected with optional reason.
+- `bb content schedule <id> --at=<iso>` set scheduledAt on an approved record.
+- `bb content publish <id>` push an approved record to the platform.
 
-CRUD: `bb content get|list|edit|delete`.
+CRUD: `bb content get <id>` / `bb content edit <id> [...]` / `bb content delete <id>` / `bb content list`. Every verb that has `--format-json` also accepts the shorter `--json` alias.
 
 Exact flag names come from `bb content create -h`, `bb content approve -h`, etc., and `bb source create -h`; treat the above as a mnemonic, not a contract. When `bb` returns non-zero, read stderr and follow the exit-code guidance from the verb's help.
 
