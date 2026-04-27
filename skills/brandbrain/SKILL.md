@@ -9,10 +9,10 @@ Thin wrapper around the `bb` CLI, BrandBrain's authenticated agent surface. You 
 
 ## Pre-flight (every `bb` invocation)
 
-Before any verb that creates or mutates content (`bb content create`, `bb content edit`, `bb source create`, `bb media *`, `bb products create|update|delete|image-upload`, `bb products research save|clear`):
+Before any `bb` verb that touches content, whether to create, mutate, or review (`bb content create`, `bb content edit`, `bb content get`, `bb content list`, `bb source create`, `bb media *`, `bb products create|update|delete|image-upload`, `bb products list`, `bb products get`, `bb products research save|clear|read`):
 
 1. Read the CLI as the spec. Run `bb -h` cold each session, and `bb <verb> -h` for any verb you have not used yet this session. Do not guess flags. The brand-context preflight checklist is also baked into `bb content create -h` itself, so reading that help text refreshes the rules.
-2. Read the user's brand context BEFORE drafting:
+2. Read the user's brand context BEFORE drafting or reviewing:
    - `bb prefs list` reads active user preferences (brand-profile memory: voice, tone, banned phrases, recurring instructions).
    - `bb defaults get` reads workspace content defaults (brand identity, colour palette, default tone, namespace-keyed fields).
    - `bb guidelines list` shows available BrandBrain cloud guidelines for the signed-in workspace; then `bb guidelines read <name>` fetches the full body of any guideline relevant to the task.
